@@ -1,26 +1,27 @@
 # Nome da dupla: Kaique Xavier e Matheus Assis
-# UdpServer.py - Servidor UDP Echo
+# Servidor UDP - Echo Server
 
 import socket
 
-HOST = '0.0.0.0'  # Escuta em todas as interfaces de rede
-PORT = 6000       # Porta do servidor UDP
-BUFFER_SIZE = 65535  # Tamanho máximo de mensagem UDP (64 KB)
+# Configurações do servidor
+HOST = '0.0.0.0'        # Escuta em todas as interfaces de rede
+PORT = 6000             # Porta para escutar conexões
+BUFFER_SIZE = 65535     # Tamanho máximo do pacote UDP
 
 def main():
-    # Criação do socket UDP (SOCK_DGRAM)
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server_socket:
-        server_socket.bind((HOST, PORT))
-        print(f"[+] Servidor UDP escutando na porta {PORT}")
+    """Inicia o servidor UDP que escuta mensagens e devolve (echo) para o cliente."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as socket_servidor:
+        socket_servidor.bind((HOST, PORT))
+        print(f"[+] Servidor UDP escutando em {HOST}:{PORT}")
 
         while True:
-            # Recebe dados e o endereço do cliente
-            data, addr = server_socket.recvfrom(BUFFER_SIZE)
-            mensagem = data.decode()
-            print(f"[{addr}] Mensagem recebida: {mensagem}")
+            # Recebe dados do cliente e o endereço de origem
+            dados, endereco = socket_servidor.recvfrom(BUFFER_SIZE)
+            mensagem = dados.decode()
+            print(f"[{endereco}] Mensagem recebida: {mensagem}")
 
-            # Envia de volta a mesma mensagem (eco)
-            server_socket.sendto(data, addr)
+            # Envia de volta a mesma mensagem (echo)
+            socket_servidor.sendto(dados, endereco)
 
 if __name__ == "__main__":
     main()
