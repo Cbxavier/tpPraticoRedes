@@ -1,52 +1,66 @@
-# Nome da dupla: Kaique Xavier e Matheus Assis
-# TcpServer.py - Servidor TCP que aceita múltiplos clientes
+# Nome: Kaique Xavier e Matheus Assis
+# tcp_server.py – Servidor TCP que aceita múltiplos clientes e responde confirmação
 
 import socket
 import threading
+import sys
+from typing import Tuple
 
-# Configurações do servidor para rodar na porta específica, nesse caso, 5000
-HOST = '0.0.0.0'  
-PORT = 5000       
+# Configurações do servidor
+HOST = '0.0.0.0'
+PORT = 5000
+BUFFER_SIZE = 1024
 
-# Função que será executada em uma thread separada para cada cliente que se conectar
-# Parâmetros:
-#   conn -> objeto de conexão com o cliente (socket)
-#   addr -> tupla contendo o IP e a porta do cliente
-def handle_client(conn, addr):
-    print(f"[+] Conexão estabelecida com {addr}") 
+def inicializar_servidor(host: str, port: int) -> socket.socket:
+    """
+    Cria, configura e retorna um socket TCP escutando em (host, port).
+    """
+    srv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    srv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    srv_sock.bind((host, port))
+    srv_sock.listen()
+    print(f"[+] Servidor TCP ativo em {host}:{port}")
+    return srv_sock
+
+def aceitar_conexoes(server_sock: socket.socket):
+    """
+    Loop que aceita conexões de clientes e dispara uma thread para cada um.
+    """
     try:
         while True:
-            # Recebe até 1024 bytes do cliente e decodifica de bytes para string
-            data = conn.recv(1024).decode()
-            if not data:
-                break  # Se não receber dados, assume que o cliente encerrou a conexão
-            print(f"[{addr}] Mensagem recebida: {data}") 
-            conn.sendall("Mensagem recebida".encode())   
-    except Exception as e:
-
-        print(f"[!] Erro com {addr}: {e}")
+            conn, addr = server_sock.accept()
+            thread = threading.Thread(target=handle_client, args=(conn, addr), daemon=True)
+            thread.start()
+    except KeyboardInterrupt:
+        print("\n[!] Interrupção pelo usuário. Finalizando servidor...")
     finally:
-        # Fecha a conexão com o cliente de forma segura
-        conn.close()
-        print(f"[-] Conexão encerrada com {addr}")
+        server_sock.close()
+        sys.exit(0)
 
-# Função principal que inicializa o servidor e aceita conexões de clientes
+def handle_client(conn: socket.socket, addr: Tuple[str, int]):
+    """
+    Lida com a comunicação de um cliente em thread separada.
+    Recebe mensagens e envia confirmação de volta.
+    """
+    print(f"[+] Conexão iniciada com {addr}")
+    with conn:
+        try:
+            while True:
+                data = conn.recv(BUFFER_SIZE)
+                if not data:
+                    break  # cliente desconectou
+                mensagem = data.decode('utf-8').strip()
+                print(f"[{addr}] -> {mensagem}")
+                resposta = "Mensagem recebida"
+                conn.sendall(resposta.encode('utf-8'))
+        except Exception as e:
+            print(f"[!] Erro na conexão com {addr}: {e}")
+        finally:
+            print(f"[-] Conexão encerrada com {addr}")
+
 def main():
-    # Cria um socket TCP (AF_INET para IPv4, SOCK_STREAM para TCP)
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-       
-        server_socket.bind((HOST, PORT))
-    
-        server_socket.listen()
-        print(f"[+] Servidor TCP escutando na porta {PORT}")
-
-        # Laço infinito para aceitar e tratar conexões de clientes
-        while True:
-            
-            conn, addr = server_socket.accept()
-           
-            thread = threading.Thread(target=handle_client, args=(conn, addr))
-            thread.start()  
+    server_socket = inicializar_servidor(HOST, PORT)
+    aceitar_conexoes(server_socket)
 
 if __name__ == "__main__":
     main()
