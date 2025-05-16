@@ -10,7 +10,7 @@ PORT = 5000
 # Função principal do cliente, responsável por contectar ao servidor e enviar mensagens
 def main():
     # Cria um socket TCP (AF_INET para IPv4, SOCK_STREAM para protocolo TCP)
-    # O uso de 'with' garante que o socket será fechado corretamente no final
+   
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
         try:
            
@@ -25,7 +25,7 @@ def main():
                     break
 
                 if not msg:
-                    print("[!] Mensagem vazia não é permitida.")
+                    print("[!] Mensagem vazia não permitida.")
                     continue
 
                 client_socket.sendall(msg.encode())
