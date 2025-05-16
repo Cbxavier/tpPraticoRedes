@@ -1,5 +1,5 @@
 # Nome: Kaique Xavier e Matheus Assis
-# tcp_client.py – Cliente TCP para enviar mensagens ao servidor
+# tcp_client.py – Cliente TCP que vai se conectar ao servidor e enviar as mensagens
 
 import socket
 import sys
@@ -9,37 +9,26 @@ HOST = '127.0.0.1'
 PORT = 5000
 BUFFER_SIZE = 1024
 
+# Função principal do cliente, responsável por contectar ao servidor e enviar mensagens
 def conectar_servidor(host: str, port: int) -> socket.socket:
-    """
-    Cria um socket TCP e conecta ao servidor.
-    Retorna o socket conectado.
-    """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((host, port))
     print(f"[+] Conectado ao servidor em {host}:{port}")
     return sock
 
 def ler_entrada_usuario() -> str:
-    """
-    Lê uma linha do usuário e retorna a mensagem sem espaços nas extremidades.
-    """
     return input("Digite uma mensagem (ou 'sair' para encerrar): ").strip()
 
 def enviar_mensagem(sock: socket.socket, msg: str):
-    """
-    Envia uma string para o servidor via socket.
-    """
     sock.sendall(msg.encode('utf-8'))
 
 def receber_resposta(sock: socket.socket) -> str:
-    """
-    Aguarda e decodifica a resposta do servidor.
-    """
     data = sock.recv(BUFFER_SIZE)
     return data.decode('utf-8')
 
+# Tenta conectar ao servidor
 def main():
-    # Tenta conectar ao servidor
+    
     try:
         cliente = conectar_servidor(HOST, PORT)
     except ConnectionRefusedError:
